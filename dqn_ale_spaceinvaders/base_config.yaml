@@ -1,0 +1,39 @@
+#Environment
+env_id: "ALE/SpaceInvaders-v5"
+frame_skip: 1
+frame_stack: 4
+resized_frame: 84
+
+#Training
+n_episodes: 5000
+n_eval_episodes: 10
+
+#Exploration
+epsilon_start: 1.0
+epsilon_end: 0.01
+epsilon_decay: 0.9995
+
+#Replay Buffer
+buffer_size: 100000
+batch_size: 64
+
+#Learning
+gamma: 0.99
+tau: 0.001
+lr: 0.0001
+max_norm_grad: 10.0
+update_every: 4
+
+#Logging and Checkpointing
+max_len_window: 100
+eval_every: 50
+base_dir: "runs/"
+
+#DQN Variants
+double_dqn: False
+dueling: False
+clip_rewards: False
+use_huber_loss: False
+
+#System
+seed: 42
