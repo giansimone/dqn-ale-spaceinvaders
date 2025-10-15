@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "dqn-ale-spaceinvaders"
+version = "0.1.0"
+description = ""
+authors = ["Giansimone Perrino <hello@giansimone.dev>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.13,<3.14"
+torch = "^2.8.0"
+gymnasium = {extras = ["accept-rom-license", "atari"], version = "^1.2.1"}
+opencv-python = "^4.12.0.88"
+wandb = "^0.22.2"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.4.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
