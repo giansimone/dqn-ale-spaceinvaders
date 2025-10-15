@@ -45,7 +45,7 @@ def train(yaml_config_path: str = "base_config.yaml") ->  None:
     double_prefix = "Double_" if config['double_dqn'] else ""
     base_name = f"{dueling_prefix}{double_prefix}DQN_"
 
-    timestamp = datetime.now().isoformat(timespec="seconds")
+    timestamp = datetime.now().strftime("%Y-%m-%d_%Hh%Mm")
     run_name = base_name + timestamp
     wandb.init(
         project="DQN-SpaceInvaders-v5",
