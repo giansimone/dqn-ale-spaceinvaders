@@ -139,5 +139,5 @@ class Agent():
         self.optimiser.load_state_dict(checkpoint["optimiser"])
         self.n_steps = checkpoint["n_steps"]
 
-    def get_n_steps(self):
+    def get_n_steps(self) -> int:
         return self.n_steps
