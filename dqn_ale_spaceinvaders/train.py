@@ -9,6 +9,7 @@ from datetime import datetime
 import torch
 import numpy as np
 import wandb
+from tqdm.auto import tqdm
 
 from agent import Agent
 from environment import make_env
@@ -45,9 +46,9 @@ def train(yaml_config_path: str = "base_config.yaml") ->  None:
     double_prefix = "Double_" if config['double_dqn'] else ""
     base_name = f"{dueling_prefix}{double_prefix}DQN_"
 
-    timestamp = datetime.now().strftime("%Y-%m-%d_%Hh%Mm")
+    timestamp = datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")
     run_name = base_name + timestamp
-    wandb.init(
+    run = wandb.init(
         project="DQN-SpaceInvaders-v5",
         name=run_name,
         config=config,
@@ -75,7 +76,7 @@ def train(yaml_config_path: str = "base_config.yaml") ->  None:
     epsilon = config["epsilon_start"]
     best_eval_score = -np.inf
 
-    for episode in range(1, config["n_episodes"] + 1):
+    for episode in tqdm(range(1, config["n_episodes"] + 1)):
         state, _ = env.reset(seed=config["seed"] + episode)
         score = 0.
         done = False
@@ -99,48 +100,38 @@ def train(yaml_config_path: str = "base_config.yaml") ->  None:
 
         epsilon = max(config["epsilon_end"], config["epsilon_decay"] * epsilon)
 
-        avg_score = np.mean(scores_window)
-        std_score = np.std(scores_window)
-        avg_loss = np.mean(losses_window)
-        std_loss = np.std(losses_window)
-
-        wandb.log({
-            "Episode Reward": score,
-            "Average Reward": avg_score,
-            "Std Reward": std_score,
-            "Average Loss": avg_loss,
-            "Std Loss": std_loss,
-            "Epsilon": epsilon,
-            "Episode Steps": episode_steps,
-            "Total Steps": agent.get_n_steps(),
+        run.log({
+            "score": score,
+            "avg_score": np.mean(scores_window),
+            "std_score": np.std(scores_window),
+            "avg_loss": np.mean(losses_window),
+            "std_loss": np.std(losses_window),
+            "epsilon": epsilon,
+            "episode_steps": episode_steps,
         }, step=episode)
 
         if episode % config["eval_every"] == 0:
             eval_score = evaluate_agent(agent, config)
-            wandb.log({"Evaluation Score": eval_score}, step=episode)
-
-            print(f"\n| Episode {episode} / {config['n_episodes']}")
-            print(f"| Average Score: {avg_score:.2f} | Evaluation Score: {eval_score:.2f}")
-            print(f"| Average Loss: {avg_loss:.4f}")
-            print(f"| Epsilon: {epsilon:.4f} | Steps: {agent.get_n_steps()}")
+            run.log({"eval_score": eval_score}, step=episode)
 
             if eval_score > best_eval_score:
                 best_eval_score = eval_score
                 try:
                     agent.save_model(run_dir / "best_model.pth")
-                    print(f"|--> New best model saved with eval score: {eval_score:.2f}")
+                    run.log_model(path = run_dir / "best_model.pth", name="best_model")
                 except Exception as e:
                     print(f"|--> Error saving model: {e}")
 
     try:
         agent.save_model(run_dir / "final_model.pth")
+        run.log_model(path = run_dir / "final_model.pth", name="final_model")
     except Exception as e:
         print(f"|--> Error saving model: {e}")
 
     print("\nTraining complete!")
     print(f"Best evaluation score: {best_eval_score:.2f}")
 
-    wandb.finish()
+    run.finish()
     env.close()
 
 
