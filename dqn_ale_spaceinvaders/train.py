@@ -4,7 +4,6 @@ Training script for Deep Q-Learning Network (DQN) on ALE Space Invaders.
 import random
 from collections import deque
 from pathlib import Path
-from datetime import datetime
 
 import torch
 import numpy as np
@@ -13,7 +12,7 @@ from tqdm.auto import tqdm
 
 from agent import Agent
 from environment import make_env
-from utils import set_seed, load_config
+from utils import set_seed, load_config, generate_run_name
 
 
 def evaluate_agent(agent: Agent, config: dict) -> float:
@@ -42,19 +41,16 @@ def evaluate_agent(agent: Agent, config: dict) -> float:
 def train(yaml_config_path: str = "base_config.yaml") ->  None:
     config = load_config(yaml_config_path)
 
-    dueling_prefix = "Dueling_" if config['dueling'] else ""
-    double_prefix = "Double_" if config['double_dqn'] else ""
-    base_name = f"{dueling_prefix}{double_prefix}DQN_"
+    set_seed(config["seed"])
 
-    timestamp = datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")
-    run_name = base_name + timestamp
+    run_name = generate_run_name(config)
+
     run = wandb.init(
         project="DQN-SpaceInvaders-v5",
         name=run_name,
         config=config,
     )
 
-    set_seed(config["seed"])
 
     base_dir = Path(config["base_dir"])
     run_dir = base_dir / run_name

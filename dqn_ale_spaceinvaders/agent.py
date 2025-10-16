@@ -11,7 +11,7 @@ from torch import optim
 import numpy as np
 
 from model import DQN, DuelingDQN
-from utils import ReplayBuffer
+from buffer import ReplayBuffer
 
 
 class Agent():

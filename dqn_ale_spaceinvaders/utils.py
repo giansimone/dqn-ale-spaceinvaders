@@ -1,6 +1,5 @@
 import random
-from collections import deque
-from typing import Tuple
+from datetime import datetime
 
 import yaml
 
@@ -34,34 +33,12 @@ def load_config(yaml_path: str = "base_config.yaml") -> dict:
     return config
 
 
-class ReplayBuffer:
-    """A simple replay buffer."""
+def generate_run_name(config: dict) -> str:
+    dueling_prefix = "Dueling_" if config['dueling'] else ""
+    double_prefix = "Double_" if config['double_dqn'] else ""
+    base_name = f"{dueling_prefix}{double_prefix}DQN_"
 
-    def __init__(self, buffer_size: int, seed: int = None):
-        self.buffer = deque(maxlen=buffer_size)
-        if seed is not None:
-            random.seed(seed)
+    timestamp = datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")
 
-    def push(
-        self,
-        state: np.ndarray,
-        action: int,
-        reward: float,
-        next_state: np.ndarray,
-        done: bool
-    ) -> None:
-        state = state.astype(np.uint8)
-        next_state = next_state.astype(np.uint8)
-        experience = (state, action, reward, next_state, done)
-        self.buffer.append(experience)
-
-    def sample(self, batch_size: int) -> Tuple[np.ndarray, ...]:
-        batch = random.sample(self.buffer, batch_size)
-        states, actions, rewards, next_states, dones = map(np.stack, zip(*batch))
-        return (states, actions, rewards, next_states, dones)
-
-    def __len__(self) -> int:
-        return len(self.buffer)
-
-    def clear(self) -> None:
-        self.buffer.clear()
+    run_name = base_name + timestamp
+    return run_name
