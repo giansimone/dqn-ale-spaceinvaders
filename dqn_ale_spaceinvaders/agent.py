@@ -57,6 +57,7 @@ class Agent():
         len(self.memory) < self.config["batch_size"]):
             return None
 
+        self.n_steps = 0
         experiences = self.memory.sample(self.config["batch_size"])
         loss = self.learn(experiences)
         return loss
@@ -111,33 +112,23 @@ class Agent():
         )
         self.optimiser.step()
 
-        self.soft_update(self.policy_net, self.target_net, self.config["tau"])
-
         return loss.item()
 
-    def soft_update(
-        self,
-        policy_model: nn.Module,
-        target_model: nn.Module,
-        tau: float
-    ) -> None:
-        for target_param, policy_param in zip(target_model.parameters(), policy_model.parameters()):
-            target_param.data.copy_(tau * policy_param.data + (1 - tau) * target_param.data)
-
     def save_model(self, filepath: str) -> None:
-        torch.save({
-            "policy_net": self.policy_net.state_dict(),
-            "target_net": self.target_net.state_dict(),
-            "optimiser": self.optimiser.state_dict(),
-            "n_steps": self.n_steps,
-        }, filepath)
+        try:
+            torch.save({
+                "policy_net": self.policy_net.state_dict(),
+                "target_net": self.target_net.state_dict(),
+                "optimiser": self.optimiser.state_dict(),
+            }, filepath)
+        except Exception as e:
+            print(f"|--> Error saving model: {e}")
 
     def load_model(self, filepath: str) -> None:
-        checkpoint = torch.load(filepath, map_location=self.device)
-        self.policy_net.load_state_dict(checkpoint["policy_net"])
-        self.target_net.load_state_dict(checkpoint["target_net"])
-        self.optimiser.load_state_dict(checkpoint["optimiser"])
-        self.n_steps = checkpoint["n_steps"]
-
-    def get_n_steps(self) -> int:
-        return self.n_steps
+        try:
+            checkpoint = torch.load(filepath, map_location=self.device)
+            self.policy_net.load_state_dict(checkpoint["policy_net"])
+            self.target_net.load_state_dict(checkpoint["target_net"])
+            self.optimiser.load_state_dict(checkpoint["optimiser"])
+        except Exception as e:
+            print(f"|--> Error loading model: {e}")

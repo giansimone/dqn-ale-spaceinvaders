@@ -1,5 +1,5 @@
 #Environment
-env_id: "ALE/SpaceInvaders-v5"
+env_id: ALE/SpaceInvaders-v5
 frame_skip: 1
 frame_stack: 4
 resized_frame: 84
@@ -19,7 +19,6 @@ batch_size: 64
 
 #Learning
 gamma: 0.99
-tau: 0.001
 lr: 0.0001
 max_norm_grad: 10.0
 update_every: 4
@@ -27,7 +26,8 @@ update_every: 4
 #Logging and Checkpointing
 max_len_window: 100
 eval_every: 50
-base_dir: "runs/"
+base_dir: runs/
+log_dir: logs/
 
 #DQN Variants
 double_dqn: False
