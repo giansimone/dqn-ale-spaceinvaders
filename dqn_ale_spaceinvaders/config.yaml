@@ -5,35 +5,33 @@ frame_stack: 4
 resized_frame: 84
 
 #Training
-n_episodes: 5000
-n_eval_episodes: 10
+training_steps: 10000000
+n_eval_episodes: 20
 
 #Exploration
 epsilon_start: 1.0
-epsilon_end: 0.01
-epsilon_decay: 0.9995
+epsilon_end: 0.1
+anneal_steps: 1000000
 
 #Replay Buffer
 buffer_size: 100000
-batch_size: 64
+batch_size: 32
 
 #Learning
 gamma: 0.99
-lr: 0.0001
-max_norm_grad: 10.0
+lr: 0.00025
 update_every: 4
+target_update_every: 10000
 
 #Logging and Checkpointing
 max_len_window: 100
 eval_every: 50
-base_dir: runs/
-log_dir: logs/
+log_dir: runs/
 
 #DQN Variants
 double_dqn: False
 dueling: False
-clip_rewards: False
-use_huber_loss: False
+clip_rewards: True
 
 #System
 seed: 42

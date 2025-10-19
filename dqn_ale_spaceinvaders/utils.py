@@ -1,5 +1,8 @@
+"""
+Module for utility functions and configuration file handling.
+"""
 import random
-from datetime import datetime
+from pathlib import Path
 
 import yaml
 
@@ -8,6 +11,7 @@ import numpy as np
 
 
 def set_seed(seed: int) -> None:
+    """Set the random seed for reproducibility."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -16,6 +20,7 @@ def set_seed(seed: int) -> None:
 
 
 def get_device() -> torch.device:
+    """Get the available device (CPU, CUDA, or MPS)."""
     if torch.cuda.is_available():
         return torch.device("cuda")
     if torch.backends.mps.is_available():
@@ -23,9 +28,9 @@ def get_device() -> torch.device:
     return torch.device("cpu")
 
 
-def load_config(yaml_path: str = "base_config.yaml") -> dict:
+def load_config(filepath: Path) -> dict:
     """Load the YAML configuration file into a standard Python dictionary."""
-    with open(yaml_path, "r") as f:
+    with open(filepath, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
     config["device"] = get_device()
@@ -33,12 +38,8 @@ def load_config(yaml_path: str = "base_config.yaml") -> dict:
     return config
 
 
-def generate_run_name(config: dict) -> str:
-    dueling_prefix = "Dueling_" if config['dueling'] else ""
-    double_prefix = "Double_" if config['double_dqn'] else ""
-    base_name = f"{dueling_prefix}{double_prefix}DQN_"
-
-    timestamp = datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")
-
-    run_name = base_name + timestamp
-    return run_name
+def save_config(config: dict, filepath: Path) -> None:
+    """Save a standard Python dictionary into a YAML configuration file."""
+    config.pop("device", None)
+    with open(filepath, "w", encoding="utf-8") as f:
+        yaml.safe_dump(config, f, sort_keys=False)

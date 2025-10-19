@@ -1,21 +1,20 @@
 """
 Training script for Deep Q-Learning Network (DQN) on ALE Space Invaders.
 """
-import random
 from collections import deque
 from pathlib import Path
+from datetime import datetime
 
-import torch
 import numpy as np
 import wandb
-from tqdm.auto import tqdm
 
 from agent import Agent
-from environment import make_env
-from utils import set_seed, load_config, generate_run_name
+from environment import make_env, get_env_dims
+from utils import set_seed, load_config, save_config
 
 
-def evaluate_agent(agent: Agent, config: dict) -> float:
+def evaluate_agent(agent: Agent, config: dict) -> np.float64:
+    """Evaluate the agent over a number of episodes."""
     eval_env = make_env(config)
     eval_scores = []
 
@@ -35,15 +34,22 @@ def evaluate_agent(agent: Agent, config: dict) -> float:
 
     eval_env.close()
 
-    return np.mean(eval_scores)
+    return np.mean(eval_scores, dtype=np.float64)
 
 
-def train(yaml_config_path: str = "base_config.yaml") ->  None:
-    config = load_config(yaml_config_path)
+def calculate_epsilon(step: int, config: dict):
+    if step >= config["anneal_steps"]:
+        return config["epsilon_end"]
+    return config["epsilon_start"] - step * (config["epsilon_start"] - config["epsilon_end"]) / config["anneal_steps"]
+
+
+def train(config_filename: Path = Path("config.yaml")) ->  None:
+    """Train a DQN agent to play Atari Space Invaders."""
+    config = load_config(config_filename)
 
     set_seed(config["seed"])
 
-    run_name = generate_run_name(config)
+    run_name = "dqn_" + datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")
 
     run = wandb.init(
         project="DQN-SpaceInvaders-v5",
@@ -52,14 +58,13 @@ def train(yaml_config_path: str = "base_config.yaml") ->  None:
     )
 
 
-    base_dir = Path(config["base_dir"])
-    run_dir = base_dir / run_name
+    log_dir = Path(config["log_dir"])
+    run_dir = log_dir / run_name
     run_dir.mkdir(parents=True, exist_ok=True)
+    save_config(config.copy(), run_dir / "config.yaml")
 
     env = make_env(config)
-
-    state_size = env.observation_space.shape
-    action_size = env.action_space.n
+    state_size, action_size = get_env_dims(env)
 
     print(f"Device: {config['device']}")
     print(f"Action Space: {action_size}")
@@ -67,25 +72,25 @@ def train(yaml_config_path: str = "base_config.yaml") ->  None:
 
     agent = Agent(state_size, action_size, config)
 
+    episode = 0
     losses_window = deque(maxlen=config["max_len_window"])
-    scores_window = deque(maxlen=config["max_len_window"])
-    epsilon = config["epsilon_start"]
+    scores_window = deque(maxlen=config["max_len_window"]) 
     best_eval_score = -np.inf
 
-    for episode in tqdm(range(1, config["n_episodes"] + 1)):
-        state, _ = env.reset(seed=config["seed"] + episode)
+    while agent.n_step < config["training_steps"]:
+        state, _ = env.reset(seed=config["seed"] + agent.n_step)
         score = 0.
         done = False
-        episode_steps = 0
+        episode += 1
 
         while not done:
-            episode_steps += 1
+            epsilon = calculate_epsilon(agent.n_step, config)
 
             action = agent.act(state, epsilon)
             next_state, reward, terminated, truncated, _ = env.step(action)
             done = terminated or truncated
 
-            loss = agent.step(state, action, reward, next_state, done)
+            loss = agent.step(state, action, float(reward), next_state, done)
             if loss is not None:
                 losses_window.append(loss)
 
@@ -94,35 +99,30 @@ def train(yaml_config_path: str = "base_config.yaml") ->  None:
 
         scores_window.append(score)
 
-        epsilon = max(config["epsilon_end"], config["epsilon_decay"] * epsilon)
-
         run.log({
+            "episode": episode,
             "score": score,
             "avg_score": np.mean(scores_window),
             "std_score": np.std(scores_window),
             "avg_loss": np.mean(losses_window),
             "std_loss": np.std(losses_window),
             "epsilon": epsilon,
-            "episode_steps": episode_steps,
-        }, step=episode)
+        }, step=agent.n_step)
 
         if episode % config["eval_every"] == 0:
             eval_score = evaluate_agent(agent, config)
-            run.log({"eval_score": eval_score}, step=episode)
+            run.log({"eval_score": eval_score}, step=agent.n_step)
+
+            print(f"\n| Step {agent.n_step} / {config['training_steps']}"
+                  f"| Evaluation Score: {eval_score:.2f}"
+            )
 
             if eval_score > best_eval_score:
                 best_eval_score = eval_score
-                try:
-                    agent.save_model(run_dir / "best_model.pth")
-                    run.log_model(path = run_dir / "best_model.pth", name="best_model")
-                except Exception as e:
-                    print(f"|--> Error saving model: {e}")
+                agent.save_model(run_dir / "best_model.pth")
+                print(f"|--> New best model saved with eval score: {eval_score:.2f}")
 
-    try:
-        agent.save_model(run_dir / "final_model.pth")
-        run.log_model(path = run_dir / "final_model.pth", name="final_model")
-    except Exception as e:
-        print(f"|--> Error saving model: {e}")
+    agent.save_model(run_dir / "final_model.pth")
 
     print("\nTraining complete!")
     print(f"Best evaluation score: {best_eval_score:.2f}")
