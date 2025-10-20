@@ -4,10 +4,14 @@ Module for utility functions and configuration file handling.
 import random
 from pathlib import Path
 
-import yaml
-
+import gymnasium as gym
 import torch
 import numpy as np
+import yaml
+import imageio
+
+from agent import Agent
+from environment import make_env, get_env_dims
 
 
 def set_seed(seed: int) -> None:
@@ -43,3 +47,37 @@ def save_config(config: dict, filepath: Path) -> None:
     config.pop("device", None)
     with open(filepath, "w", encoding="utf-8") as f:
         yaml.safe_dump(config, f, sort_keys=False)
+
+
+
+def load_artifact(artifact_path: Path, render_mode: str) -> list:
+    config_path = artifact_path.parent / "config.yaml"
+    config = load_config(config_path)
+
+    env = make_env(config, render_mode=render_mode)
+    state_size, action_size = get_env_dims(env)
+
+    agent = Agent(state_size, action_size, config)
+    agent.load_model(artifact_path)
+
+    return config, env, agent
+
+
+def record_movie(env: gym.Env, agent: Agent, filepath: Path, fps: int = 30) -> None:
+    images = []
+    done = False
+    state, _ = env.reset()
+    img = env.render()
+    images.append(img)
+
+    while not terminated or truncated:
+        action = agent.act(state, epsilon=0.0)
+
+        next_state, _, terminated, truncated, _ = env.step(action)
+        done = terminated or truncated
+        state = next_state
+
+        img = env.render()
+        images.append(img)
+
+    imageio.mimsave(filepath, images, fps=fps)

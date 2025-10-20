@@ -5,24 +5,14 @@ import argparse
 from pathlib import Path
 
 from agent import Agent
-from environment import make_env, get_env_dims
-from utils import load_config
+from utils import load_config, load_artifact
 
 
-def enjoy(run_dir: Path, num_episodes: int, model_name: str) -> None:
+def enjoy(artifact_path: Path, n_episodes: int) -> None:
     """Enjoy a trained DQN agent playing Atari Space Invaders."""
-    config_path = run_dir / "config.yaml"
-    config = load_config(config_path)
+    config, env, agent = load_artifact(artifact_path, "human")
 
-    model_path = run_dir / model_name
-
-    env = make_env(config, render_mode="human")
-    state_size, action_size = get_env_dims(env)
-
-    agent = Agent(state_size, action_size, config)
-    agent.load_model(model_path)
-
-    for episode in range(1, num_episodes + 1):
+    for episode in range(1, n_episodes + 1):
         state, _ = env.reset()
         done = False
         score = 0.
@@ -43,11 +33,11 @@ def enjoy(run_dir: Path, num_episodes: int, model_name: str) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--run-dir",
-        "-r",
+        "--artifact",
+        "-a",
         type=str,
         required=True,
-        help="The path to the saved agent model to play Atari Space Invaders.",
+        help="The artifact to play Atari Space Invaders.",
     )
     parser.add_argument(
         "--num-episodes",
@@ -56,17 +46,9 @@ if __name__ == "__main__":
         default=10,
         help="The number of Atari Space Invaders episodes to enjoy.",
     )
-    parser.add_argument(
-        "--model-name",
-        "-m",
-        type=str,
-        default="best_model.pth",
-        help="The model name to play Atari Space Invaders.",
-    )
     args = parser.parse_args()
 
-    run_dir = Path(args.run_dir)
+    artifact = Path(args.artifact)
     num_episodes = args.num_episodes
-    model_name = args.model_name
 
-    enjoy(run_dir=run_dir, num_episodes=num_episodes, model_name=model_name)
+    enjoy(artifact_path=artifact, n_episodes=num_episodes)
