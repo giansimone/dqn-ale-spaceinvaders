@@ -146,4 +146,5 @@ class Agent():
 
     @property
     def n_step(self):
+        """Get the current step count."""
         return self._n_step
