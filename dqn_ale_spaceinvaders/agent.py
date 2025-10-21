@@ -12,6 +12,7 @@ import numpy as np
 
 from model import DQN, DuelingDQN
 from buffer import ReplayBuffer
+from environment import make_env
 
 
 class Agent():
@@ -148,3 +149,33 @@ class Agent():
     def n_step(self):
         """Get the current step count."""
         return self._n_step
+
+
+def evaluate_agent(agent: Agent, config: dict) -> list[np.float64, np.float64]:
+    """Evaluate the agent over a number of episodes."""
+    env = make_env(config)
+    scores = []
+
+    for episode in range(config["n_eval_episodes"]):
+        state, _ = env.reset(seed=config["seed"] + episode)
+        score = 0.
+        done = False
+
+        while not done:
+            action = agent.act(state, epsilon=0.)
+            next_state, reward, terminated, truncated, _ = env.step(action)
+            done = terminated or truncated
+            state = next_state
+            score += float(reward)
+
+        scores.append(score)
+
+    env.close()
+
+    avg_score = np.mean(scores, dtype=np.float64)
+    std_score = np.std(scores, dtype=np.float64)
+
+    return avg_score, std_score
+
+
+

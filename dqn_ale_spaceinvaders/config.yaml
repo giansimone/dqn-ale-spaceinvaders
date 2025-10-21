@@ -9,12 +9,13 @@ training_steps: 10000000
 n_eval_episodes: 20
 
 #Exploration
+warmup_steps: 100000
 epsilon_start: 1.0
 epsilon_end: 0.1
 anneal_steps: 1000000
 
 #Replay Buffer
-buffer_size: 100000
+buffer_size: 200000
 batch_size: 32
 
 #Learning
@@ -31,7 +32,7 @@ log_dir: runs/
 #DQN Variants
 double_dqn: False
 dueling: False
-clip_rewards: True
+clip_rewards: False
 
 #System
 seed: 42

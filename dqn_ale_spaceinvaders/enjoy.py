@@ -4,13 +4,12 @@ Module to enjoy a trained DQN agent playing Atari Space Invaders.
 import argparse
 from pathlib import Path
 
-from agent import Agent
-from utils import load_config, load_artifact
+from utils import load_artifact
 
 
 def enjoy(artifact_path: Path, n_episodes: int) -> None:
     """Enjoy a trained DQN agent playing Atari Space Invaders."""
-    config, env, agent = load_artifact(artifact_path, "human")
+    _, env, agent = load_artifact(artifact_path, "human")
 
     for episode in range(1, n_episodes + 1):
         state, _ = env.reset()

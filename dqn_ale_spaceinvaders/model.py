@@ -1,8 +1,10 @@
+"""
+DQN and Dueling DQN model definitions for ALE Space Invaders environment.
+"""
 from typing import Tuple
 
 import torch
 from torch import nn
-import torch.nn.functional as F
 
 
 class DQN(nn.Module):
@@ -33,6 +35,7 @@ class DQN(nn.Module):
         )
 
     def forward(self, x):
+        """Forward pass through the DQN network."""
         x = self.conv(x).flatten(start_dim=1)
         return self.head(x)
 
@@ -77,6 +80,7 @@ class DuelingDQN(nn.Module):
         )
 
     def forward(self, x):
+        """Forward pass through the Dueling DQN network."""
         x = self.conv(x).flatten(start_dim=1)
 
         value = self.value_stream(x)

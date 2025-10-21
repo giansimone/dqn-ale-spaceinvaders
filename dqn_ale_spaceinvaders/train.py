@@ -8,36 +8,16 @@ from datetime import datetime
 import numpy as np
 import wandb
 
-from agent import Agent
+from agent import Agent, evaluate_agent
 from environment import make_env, get_env_dims
 from utils import set_seed, load_config, save_config
 
 
-def evaluate_agent(agent: Agent, config: dict) -> np.float64:
-    """Evaluate the agent over a number of episodes."""
-    eval_env = make_env(config)
-    eval_scores = []
-
-    for episode in range(config["n_eval_episodes"]):
-        state, _ = eval_env.reset(seed=config["seed"] + episode)
-        score = 0.
-        done = False
-
-        while not done:
-            action = agent.act(state, epsilon=0.)
-            next_state, reward, terminated, truncated, _ = eval_env.step(action)
-            done = terminated or truncated
-            state = next_state
-            score += float(reward)
-
-        eval_scores.append(score)
-
-    eval_env.close()
-
-    return np.mean(eval_scores, dtype=np.float64)
-
-
-def calculate_epsilon(step: int, config: dict):
+def calculate_epsilon(step: int, config: dict) -> float:
+    """Calculate the epsilon value for epsilon-greedy action selection."""
+    if step < config["warmup_steps"]:
+        return 1.0
+    step -= config["warmup_steps"]
     if step >= config["anneal_steps"]:
         return config["epsilon_end"]
     return config["epsilon_start"] - step * (config["epsilon_start"] - config["epsilon_end"]) / config["anneal_steps"]
@@ -110,19 +90,19 @@ def train(config_filename: Path = Path("config.yaml")) ->  None:
         }, step=agent.n_step)
 
         if episode % config["eval_every"] == 0:
-            eval_score = evaluate_agent(agent, config)
-            run.log({"eval_score": eval_score}, step=agent.n_step)
+            avg_eval_score, std_eval_score = evaluate_agent(agent, config)
+            run.log({"eval_score": avg_eval_score}, step=agent.n_step)
 
-            print(f"\n| Step {agent.n_step} / {config['training_steps']}"
-                  f"| Evaluation Score: {eval_score:.2f}"
+            print(f"\n| Step {agent.n_step} / {config['training_steps']} | Episode {episode}"
+                  f"| Evaluation Score: {avg_eval_score:.2f} +/- {std_eval_score:.2f}"
             )
 
-            if eval_score > best_eval_score:
-                best_eval_score = eval_score
-                agent.save_model(run_dir / "best_model.pth")
-                print(f"|--> New best model saved with eval score: {eval_score:.2f}")
+            if avg_eval_score > best_eval_score:
+                best_eval_score = avg_eval_score
+                agent.save_model(run_dir / "best_model.pt")
+                print(f"|--> New best model saved with eval score: {avg_eval_score:.2f} +/- {std_eval_score:.2f}")
 
-    agent.save_model(run_dir / "final_model.pth")
+    agent.save_model(run_dir / "final_model.pt")
 
     print("\nTraining complete!")
     print(f"Best evaluation score: {best_eval_score:.2f}")
