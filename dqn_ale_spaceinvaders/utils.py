@@ -49,8 +49,8 @@ def save_config(config: dict, filepath: Path) -> None:
         yaml.safe_dump(config, f, sort_keys=False)
 
 
-
-def load_artifact(artifact_path: Path, render_mode: str) -> list:
+def load_artifact(artifact_path: Path, render_mode: str) -> tuple[dict, gym.Env, Agent]:
+    """Load the configuration, environment, and agent from the specified artifact path."""
     config_path = artifact_path.parent / "config.yaml"
     config = load_config(config_path)
 
@@ -64,13 +64,14 @@ def load_artifact(artifact_path: Path, render_mode: str) -> list:
 
 
 def record_movie(env: gym.Env, agent: Agent, filepath: Path, fps: int = 30) -> None:
+    """Record a movie of the agent interacting with the environment."""
     images = []
     done = False
     state, _ = env.reset()
     img = env.render()
     images.append(img)
 
-    while not terminated or truncated:
+    while not done:
         action = agent.act(state, epsilon=0.0)
 
         next_state, _, terminated, truncated, _ = env.step(action)
@@ -81,3 +82,5 @@ def record_movie(env: gym.Env, agent: Agent, filepath: Path, fps: int = 30) -> N
         images.append(img)
 
     imageio.mimsave(filepath, images, fps=fps)
+
+    print("done")
