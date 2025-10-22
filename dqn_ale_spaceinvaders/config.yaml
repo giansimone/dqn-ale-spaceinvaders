@@ -1,6 +1,6 @@
 #Environment
 env_id: ALE/SpaceInvaders-v5
-frame_skip: 1
+frame_skip: 4
 frame_stack: 4
 resized_frame: 84
 

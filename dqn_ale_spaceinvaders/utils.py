@@ -8,7 +8,7 @@ import gymnasium as gym
 import torch
 import numpy as np
 import yaml
-import imageio
+import imageio.v3 as iio
 
 from agent import Agent
 from environment import make_env, get_env_dims
@@ -63,7 +63,7 @@ def load_artifact(artifact_path: Path, render_mode: str) -> tuple[dict, gym.Env,
     return config, env, agent
 
 
-def record_movie(env: gym.Env, agent: Agent, filepath: Path, fps: int = 30) -> None:
+def record_movie(env: gym.Env, agent: Agent, filepath: Path, fps: int = 60) -> None:
     """Record a movie of the agent interacting with the environment."""
     images = []
     done = False
@@ -81,6 +81,12 @@ def record_movie(env: gym.Env, agent: Agent, filepath: Path, fps: int = 30) -> N
         img = env.render()
         images.append(img)
 
-    imageio.mimsave(filepath, images, fps=fps)
-
+    iio.imwrite(
+        filepath,
+        images,
+        fps=fps,
+        codec="libx264",
+        macro_block_size=1,
+    )
     print("done")
+
