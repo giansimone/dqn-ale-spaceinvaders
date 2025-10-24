@@ -209,3 +209,6 @@ __marimo__/
 # Operating System files
 .DS_Store
 Thumbs.db
+
+# Training runs
+runs/
