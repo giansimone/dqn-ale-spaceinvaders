@@ -1,10 +1,34 @@
 [tool.poetry]
 name = "dqn-ale-spaceinvaders"
 version = "0.1.0"
-description = ""
+description = "A Deep Q-Network (DQN) implementation for Atari Space Invaders using Gymnasium and PyTorch."
 authors = ["Giansimone Perrino <hello@giansimone.dev>"]
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/giansimone/dqn-ale-spaceinvaders"
+packages = [
+    { include = "dqn_ale_spaceinvaders" },
+]
+keywords = [
+    "reinforcement-learning",
+    "deep-reinforcement-learning",
+    "deep-q-learning-network",
+    "dqn",
+    "atari",
+    "gymnasium",
+    "space-invaders",
+    "arcade-learning-environment",
+    "ale",
+    "pytorch",
+]
+classifiers = [
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+]
 
 [tool.poetry.dependencies]
 python = ">=3.13,<3.14"
