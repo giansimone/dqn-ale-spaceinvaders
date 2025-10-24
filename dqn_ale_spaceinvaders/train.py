@@ -6,7 +6,7 @@ from pathlib import Path
 from datetime import datetime
 
 import numpy as np
-import wandb
+from torch.utils.tensorboard import SummaryWriter
 
 from agent import Agent, evaluate_agent
 from environment import make_env, get_env_dims
@@ -31,17 +31,12 @@ def train(config_filename: Path = Path("config.yaml")) ->  None:
 
     run_name = "dqn_" + datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss")
 
-    run = wandb.init(
-        project="DQN-SpaceInvaders-v5",
-        name=run_name,
-        config=config,
-    )
-
-
     log_dir = Path(config["log_dir"])
     run_dir = log_dir / run_name
     run_dir.mkdir(parents=True, exist_ok=True)
     save_config(config.copy(), run_dir / "config.yaml")
+
+    writer = SummaryWriter(log_dir=run_dir)
 
     env = make_env(config)
     state_size, action_size = get_env_dims(env)
@@ -79,19 +74,15 @@ def train(config_filename: Path = Path("config.yaml")) ->  None:
 
         scores_window.append(score)
 
-        run.log({
-            "episode": episode,
-            "score": score,
-            "avg_score": np.mean(scores_window),
-            "std_score": np.std(scores_window),
-            "avg_loss": np.mean(losses_window),
-            "std_loss": np.std(losses_window),
-            "epsilon": epsilon,
-        }, step=agent.n_step)
-
-        if episode % config["eval_every"] == 0:
+        if agent.n_step% config["eval_every"] == 0:
             avg_eval_score, std_eval_score = evaluate_agent(agent, config)
-            run.log({"eval_score": avg_eval_score}, step=agent.n_step)
+
+            writer.add_scalar("episode", episode, global_step=agent.n_step)
+            writer.add_scalar("metrics/training_score", np.mean(scores_window), global_step=agent.n_step)
+            writer.add_scalar("metrics/training_score_std", np.std(scores_window), global_step=agent.n_step)
+            writer.add_scalar("metrics/evaluation_score", avg_eval_score, global_step=agent.n_step)
+            writer.add_scalar("metrics/evaluation_score_std", std_eval_score, global_step=agent.n_step)
+            writer.add_scalar("hyperparameters/epsilon", epsilon, global_step=agent.n_step)
 
             print(f"\n| Step {agent.n_step} / {config['training_steps']} | Episode {episode}"
                   f"| Evaluation Score: {avg_eval_score:.2f} +/- {std_eval_score:.2f}"
@@ -107,7 +98,7 @@ def train(config_filename: Path = Path("config.yaml")) ->  None:
     print("\nTraining complete!")
     print(f"Best evaluation score: {best_eval_score:.2f}")
 
-    run.finish()
+    writer.close()
     env.close()
 
 

@@ -19,7 +19,7 @@ def push_to_hub(
     username: str,
     repo_name: str,
     artifact_path: Path,
-    movie_fps=60,
+    movie_fps=12,
     ):
     """Push a trained DQN agent to the Hugging Face Hub."""
     api = HfApi()
@@ -166,7 +166,7 @@ if __name__ == "__main__":
         "--movie-fps",
         "-f",
         type=int,
-        default=60,
+        default=12,
         help="The fps value to record the movie.",
     )
 

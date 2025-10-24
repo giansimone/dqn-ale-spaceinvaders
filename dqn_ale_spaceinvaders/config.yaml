@@ -1,12 +1,12 @@
 #Environment
 env_id: ALE/SpaceInvaders-v5
-frame_skip: 4
+frame_skip: 5
 frame_stack: 4
 resized_frame: 84
 
 #Training
 training_steps: 10000000
-n_eval_episodes: 20
+n_eval_episodes: 10
 
 #Exploration
 warmup_steps: 100000
@@ -21,7 +21,7 @@ batch_size: 32
 #Learning
 gamma: 0.99
 lr: 0.00025
-update_every: 4
+update_every: 25000
 target_update_every: 10000
 
 #Logging and Checkpointing
