@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dqn-ale-spaceinvaders"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Deep Q-Network (DQN) implementation for Atari Space Invaders using Gymnasium and PyTorch."
 authors = ["Giansimone Perrino <hello@giansimone.dev>"]
 license = "MIT"

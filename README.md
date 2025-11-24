@@ -4,6 +4,8 @@
 
 # Deep Q-Network (DQN) for Atari Space Invaders
 
+![Agent Playing Space Invaders](docs/demo.gif)
+
 A PyTorch implementation of Deep Q-Learning Network (DQN) trained to play Atari Space Invaders using the Arcade Learning Environment (ALE).
 
 ## Features
@@ -16,45 +18,76 @@ A PyTorch implementation of Deep Q-Learning Network (DQN) trained to play Atari 
 - **Hugging Face Hub integration** for model sharing.
 - **Video recording** of agent gameplay.
 
-## Requirements
+## Installation
 
-Install via pip:
+You can install the package from PyPI or clone the repository and install the required dependencies using Poetry or pip. This project requires **Python 3.13**.
+
+### PyPI
 
 ```bash
 pip install dqn-ale-spaceinvaders
 ```
 
-Or clone the repository and install dependencies:
+### Source
+
+#### Using Poetry (Recommended)
 
 ```bash
+# 1. Clone the repository
 git clone https://github.com/giansimone/dqn-ale-spaceinvaders.git
 cd dqn-ale-spaceinvaders
+
+# 2. Initialize environment and install dependencies
+poetry env use python3.13
 poetry install
+
+# 3. Activate the virtual environment
+eval $(poetry env activate)
+```
+
+#### Using pip
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/giansimone/dqn-ale-spaceinvaders.git
+cd dqn-ale-spaceinvaders
+
+# 2. Create and activate a virtual environment
+python3.13 -m venv venv
+source venv/bin/activate
+
+# 3. Install package in editable mode
+pip install -e .
 ```
 
 ## Project Structure
 
 ```
 dqn-ale-spaceinvaders/
-├── agent.py           # DQN agent implementation
-├── buffer.py          # Experience replay buffer
-├── config.yaml        # Agent configuration
-├── environment.py     # Environment setup and wrappers
-├── model.py           # Deep learning architectures
-├── train.py           # Training script
-├── enjoy.py           # Play with trained agent
-├── export.py          # Export model to Hugging Face Hub
-└── utils.py           # Utility functions
+├── dqn_ale_spaceinvaders/
+│    ├── agent.py           # DQN agent implementation
+│    ├── buffer.py          # Experience replay buffer
+│    ├── config.yaml        # Agent configuration
+│    ├── environment.py     # Environment setup and wrappers
+│    ├── model.py           # Deep learning architectures
+│    ├── train.py           # Training script
+│    ├── enjoy.py           # Play with trained agent
+│    ├── export.py          # Export model to Hugging Face Hub
+│    └── utils.py           # Utility functions
+├── .gitignore
+├── LICENSE
+├── README.md
+└── pyproject.toml
 ```
 
-## Quick Start
+## Usage
 
 ### Training
 
-Train a DQN agent with the default configuration:
+Train a DQN agent with the default configuration.
 
 ```bash
-python -m train
+python -m dqn_ale_spaceinvaders.train
 ```
 
 The training script will:
@@ -64,7 +97,7 @@ The training script will:
 
 ### Configuration
 
-Edit `config.yaml` to customize training parameters:
+Edit `config.yaml` to customize training parameters.
 
 ```yaml
 # Environment
@@ -112,7 +145,7 @@ tensorboard --logdir runs/dqn_YYYY-MM-DD_HHhMMmSSs/
 Watch your trained agent play:
 
 ```bash
-python -m enjoy --artifact runs/dqn_YYYY-MM-DD_HHhMMmSSs/final_model.pt --num-episodes 5
+python -m dqn_ale_spaceinvaders.enjoy --artifact runs/dqn_YYYY-MM-DD_HHhMMmSSs/final_model.pt --num-episodes 5
 ```
 
 ### Exporting to Hugging Face Hub
@@ -158,26 +191,6 @@ Separates state value and action advantages:
 3. **Experience Replay**: Sample random mini-batches from replay buffer.
 4. **Target Network**: Separate network updated periodically for stability.
 5. **Double DQN** (optional): Reduces overestimation by decoupling action selection and evaluation.
-
-## Advanced Usage
-
-### Loading a Trained Model
-
-```python
-import torch
-from pathlib import Path
-from utils import load_artifact
-
-# Load model
-config, env, agent = load_artifact(
-    Path("runs/dqn_YYYY-MM-DD_HHhMMmSSs/final_model.pt"),
-    render_mode="human"
-)
-
-# Use the agent
-state, _ = env.reset()
-action = agent.act(state, epsilon=0.0)
-```
 
 ## License
 
