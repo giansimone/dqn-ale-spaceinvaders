@@ -4,7 +4,9 @@
 
 # Deep Q-Network (DQN) for Atari Space Invaders
 
-![Agent Playing Space Invaders](docs/demo.gif)
+<p align="center">
+    <img src="https://raw.githubusercontent.com/giansimone/dqn-ale-spaceinvaders/main/docs/demo.gif" alt="Agent Playing Space Invaders" width="300"/>
+</p>
 
 A PyTorch implementation of Deep Q-Learning Network (DQN) trained to play Atari Space Invaders using the Arcade Learning Environment (ALE).
 
