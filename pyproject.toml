@@ -2,7 +2,7 @@
 name = "dqn-ale-spaceinvaders"
 version = "0.1.2"
 description = "A Deep Q-Network (DQN) implementation for Atari Space Invaders using Gymnasium and PyTorch."
-authors = ["Giansimone Perrino <hello@giansimone.dev>"]
+authors = ["Giansimone Perrino <hello@giansimone.com>"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/giansimone/dqn-ale-spaceinvaders"
